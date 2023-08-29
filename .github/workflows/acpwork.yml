@@ -5,7 +5,7 @@ on:
   pull_request_target:
     types: [closed]
 
-# Github & Parent PR Env vars
+# Github & Parent PR Env vars required
 env:
   assignee: ${{ github.event.pull_request.assignee.login }}
   title: ${{ github.event.pull_request.title }}
