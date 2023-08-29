@@ -1,0 +1,44 @@
+# CI stages to execute against all branches on PR merge
+name: auto_cherry_pick_commits
+
+on:
+  pull_request_target:
+    types: [closed]
+
+# Github & Parent PR Env vars
+env:
+  assignee: ${{ github.event.pull_request.assignee.login }}
+  title: ${{ github.event.pull_request.title }}
+  number: ${{ github.event.number }}
+
+jobs:
+
+  # Auto CherryPicking and Failure Recording
+  auto-cherry-pick:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
+    name: Auto Cherry Pick to labeled branches
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        label: ${{ github.event.pull_request.labels.*.name }}
+
+    steps:
+      ## Robottelo Repo Checkout
+      - uses: actions/checkout@v3
+        if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
+        with:
+          fetch-depth: 0
+
+      ## CherryPicking and AutoMerging
+      - name: Cherrypicking to zStream branch
+        id: cherrypick
+        if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
+        uses: jyejare/github-cherry-pick-action@sha_changing
+        with:
+          token: ${{ secrets.CHERRYPICK_PAT }}
+          branch: ${{ matrix.label }}
+          labels: |
+            Auto_Cherry_Picked
+            ${{ matrix.label }}
+            No-CherryPick
+          assignees: ${{ env.assignee }}
