@@ -33,7 +33,7 @@ jobs:
       - name: Cherrypicking to zStream branch
         id: cherrypick
         if: ${{ startsWith(matrix.label, '6.') && matrix.label != github.base_ref }}
-        uses: jyejare/github-cherry-pick-action@main
+        uses: jyejare/github-cherry-pick-action@sha_changing
         with:
           token: ${{ secrets.CHERRYPICK_PAT }}
           branch: ${{ matrix.label }}
