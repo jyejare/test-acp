@@ -33,7 +33,9 @@ jobs:
       ## Set env var for dependencies label PR
       - name: Check if the PR is a dependency PR
         if: contains(github.event.pull_request.labels.*.name, 'dependencies')
-        run: echo "is_dependency=dependencies" >> $GITHUB_ENV
+        run: |
+          echo "is_dependency=dependencies" >> $GITHUB_ENV
+          echo $GITHUB_ENV
 
       ## CherryPicking and AutoMerging
       - name: Cherrypicking to zStream branch
