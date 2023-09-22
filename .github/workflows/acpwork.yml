@@ -14,7 +14,7 @@ env:
 
 jobs:
 
-  # Auto CherryPicking and Failure Recording
+  # Auto CherryPicking and Failure Recording for further use
   auto-cherry-pick:
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'CherryPick')
     name: Auto Cherry Pick to labeled branches
