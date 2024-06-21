@@ -76,7 +76,7 @@ jobs:
     steps:
       - name: Tell me the branch name
         run: |
-          echo ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
+          echo ${{ needs.convert-requested-branches-to-array.outputs.branches_array }}
 
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
