@@ -48,6 +48,17 @@ jobs:
           echo "Assignee is ${{ steps.parentPR.outputs.assignee }}"
           echo "Title is ${{ steps.parentPR.outputs.title }}"
 
+  run-the-branch-matrix:
+    name: Auto Cherry Pick to labeled branches
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        label: ${{ env.to_branches }}
+    steps:
+      - name: Tell me the branch name
+        run: |
+          echo ${{ matrix.label }}
+
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
 #    if: steps.parentPR.outputs.state == close
