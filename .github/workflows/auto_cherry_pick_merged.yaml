@@ -69,8 +69,10 @@ jobs:
     #     branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
     steps:
       - name: Tell me the branch name
-        run: |
-          echo "Branches ${{ needs.arrayconversion.outputs.branches }}"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log("Branches are: ", ${{ needs.arrayconversion.outputs.branches }})
 
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
