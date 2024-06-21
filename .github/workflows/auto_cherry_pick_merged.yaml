@@ -48,35 +48,33 @@ jobs:
           echo "Assignee is ${{ steps.parentPR.outputs.assignee }}"
           echo "Title is ${{ steps.parentPR.outputs.title }}"
 
-  convert-requested-branches-to-array:
+  arrayconversion:
     runs-on: ubuntu-latest
     steps:
       - name: Convert String to List
-        id: convert
+        id: conversion
         uses: actions/github-script@v7
         with:
           script: |
             const branches = "${{ github.event.inputs.branches }}";
             const branchesArray = branches.includes(',') ? branches.split(',').map(item => item.trim()) : [branches.trim()];
-            const stringyitems = JSON.stringify(branchesArray);
-            console.log('Stringy Items', stringyitems);
-            core.setOutput('branches_array', JSON.stringify(branchesArray));
+            core.setOutput('branches', JSON.stringify(branchesArray));
 
       - name: Use Items Array
         run: |
-          echo "Items array: ${{ steps.convert.outputs.branches_array }}"
+          echo "Items array: ${{ steps.conversion.outputs.branches }}"
 
   run-the-branch-matrix:
     name: Auto Cherry Pick to labeled branches
     runs-on: ubuntu-latest
-    needs: convert-requested-branches-to-array
+    needs: arrayconversion
     # strategy:
     #   matrix:
     #     branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
     steps:
       - name: Tell me the branch name
         run: |
-          echo ${{ needs.convert-requested-branches-to-array.outputs.branches_array }}
+          echo ${{ needs.arrayconversion.outputs.branches }}
 
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
