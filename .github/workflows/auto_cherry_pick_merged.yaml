@@ -1,0 +1,163 @@
+### The workflow for retrying/rerunning the merged PRs AutoCherryPick which was missed/failed due to any circumstances
+name: Retry Merged PRs AutoCherryPick
+
+# Run on workflow dispatch from CI
+on:
+  workflow_dispatch:
+    inputs:
+      parentPR:
+        type: string
+        description: An identifier for parent PR to retry its cherrypick
+      branches:
+        type: string
+        description: Comma separated list of branches where the master PR to be cherrypicked
+
+
+env:
+  number: ${{ github.event.inputs.parentPR }}
+  to_branches:  ${{ github.event.inputs.branches }}
+  is_dependabot_pr: ''
+
+jobs:
+
+  get-parentPR-details:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find parent PR details
+        id: parentPR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: ${{ env.number }},
+            });
+            core.setOutput('labels', pr.labels);
+            core.setOutput('state', pr.state);
+            core.setOutput('base_ref', pr.base.ref);
+            core.setOutput('assignee', pr.assignee.login);
+            core.setOutput('title', pr.title);
+
+      - name: Print PR details
+        run: |
+          echo "Labels are ${{ steps.parentPR.outputs.labels }}"
+          echo "State is ${{ steps.parentPR.outputs.state }}"
+          echo "Base Ref is ${{ steps.parentPR.outputs.base_ref }}"
+          echo "Assignee is ${{ steps.parentPR.outputs.assignee }}"
+          echo "Title is ${{ steps.parentPR.outputs.title }}"
+
+#  # Pre-Requisites for Auto Cherrypicking
+#  find-the-parent-prt-comment:
+#    if: steps.parentPR.outputs.state == close
+#    name: Find & Save last PRT comment of Parent PR
+#    runs-on: ubuntu-latest
+#    outputs:
+#      prt_comment: ${{steps.fc.outputs.comment-body}}
+#    steps:
+#      - name: Find Comment
+#        uses: peter-evans/find-comment@v3
+#        id: fc
+#        with:
+#          issue-number: ${{ env.number }}
+#          body-includes: "trigger: test-robottelo"
+#          direction: last
+#
+#  # Auto CherryPicking and Failure Recording
+#  auto-cherry-pick:
+#    if: steps.parentPR.outputs.state == close
+#    name: Auto Cherry Pick to labeled branches
+#    needs: find-the-parent-prt-comment
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        label: ${{ env.to_branches }}
+#
+#    steps:
+#      # Needed to avoid out-of-memory error
+#      - name: Set Swap Space
+#        uses: pierotofy/set-swap-space@master
+#        with:
+#          swap-size-gb: 10
+#
+#      ## Robottelo Repo Checkout
+#      - uses: actions/checkout@v4
+#        if: ${{ startsWith(matrix.label, '6.') && matrix.label != steps.parentPR.outputs.base_ref }}
+#        with:
+#          fetch-depth: 0
+#
+#      ## Set env var for dependencies label PR
+#      - name: Set env var is_dependabot_pr to `dependencies` to set the label
+#        if: contains(steps.parentPR.outputs.labels.*.name, 'dependencies')
+#        run: |
+#          echo "is_dependabot_pr=dependencies" >> $GITHUB_ENV
+#
+#      ## CherryPicking and AutoMerging
+#      - name: Cherrypicking to zStream branch
+#        id: cherrypick
+#        if: ${{ startsWith(matrix.label, '6.') && matrix.label != steps.parentPR.outputs.base_ref }}
+#        uses: jyejare/github-cherry-pick-action@main
+#        with:
+#          token: ${{ secrets.CHERRYPICK_PAT }}
+#          branch: ${{ matrix.label }}
+#          labels: |
+#            Auto_Cherry_Picked
+#            ${{ matrix.label }}
+#            No-CherryPick
+#            ${{ env.is_dependabot_pr }}
+#          assignees: ${{ steps.parentPR.outputs.assignee }}
+#
+#      - name: Add Parent PR's PRT comment to Auto_Cherry_Picked PR's
+#        id: add-parent-prt-comment
+#        if: ${{ always() && needs.find-the-parent-prt-comment.outputs.prt_comment != '' && steps.cherrypick.outcome == 'success' }}
+#        uses: thollander/actions-comment-pull-request@v2
+#        with:
+#          message: |
+#            ${{ needs.find-the-parent-prt-comment.outputs.prt_comment }}
+#          pr_number: ${{ steps.cherrypick.outputs.number  }}
+#          GITHUB_TOKEN: ${{ secrets.CHERRYPICK_PAT }}
+#
+#      - name: is autoMerging enabled for Auto CherryPicked PRs ?
+#        if: ${{ always() && steps.cherrypick.outcome == 'success' && contains(steps.parentPR.outputs.labels.*.name, 'AutoMerge_Cherry_Picked') }}
+#        uses: actions/github-script@v7
+#        with:
+#          github-token: ${{ secrets.CHERRYPICK_PAT }}
+#          script: |
+#            github.rest.issues.addLabels({
+#              issue_number: ${{ steps.cherrypick.outputs.number }},
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              labels: ["AutoMerge_Cherry_Picked"]
+#            })
+#
+#      - name: Check if cherrypick pr is created
+#        id: search_pr
+#        if: always()
+#        run: |
+#          PR_TITLE="[${{ matrix.label }}] ${{ steps.parentPR.outputs.title }}"
+#          API_URL="https://api.github.com/repos/${{ github.repository }}/pulls?state=open"
+#          PR_SEARCH_RESULT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL" | jq --arg title "$PR_TITLE" '.[] | select(.title == $title)')
+#          if [ -n "$PR_SEARCH_RESULT" ]; then
+#            echo "pr_found=true" >> $GITHUB_OUTPUT
+#            echo "PR is Found with title $PR_TITLE"
+#          else
+#            echo "pr_found=false" >> $GITHUB_OUTPUT
+#            echo "PR is not Found with title $PR_TITLE"
+#          fi
+#
+#      ## Failure Logging to issues
+#      - name: Create Github issue on cherrypick failure
+#        id: create-issue
+#        if: ${{ always() && steps.search_pr.outputs.pr_found == 'false' && steps.cherrypick.outcome != 'success' && startsWith(matrix.label, '6.') && matrix.label != steps.parentPR.outputs.base_ref }}
+#        uses: dacbd/create-issue-action@main
+#        with:
+#          token: ${{ secrets.CHERRYPICK_PAT }}
+#          title: "[Failed-AutoCherryPick] - ${{ steps.parentPR.outputs.title }}"
+#          body: |
+#            #### Auto-Cherry-Pick WorkFlow Failure:
+#            - To Branch: ${{ matrix.label }}
+#            - [Failed Cherrypick Action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+#            - [Parent Pull Request](https://github.com/${{ github.repository }}/pull/${{ env.number }})
+#          labels: Failed_AutoCherryPick,${{ matrix.label }}
+#          assignees: ${{ steps.parentPR.outputs.assignee }}
+
