@@ -70,7 +70,7 @@ jobs:
     needs: convert-requested-branches-to-array
     strategy:
       matrix:
-        branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
+        branch: ${{ needs.convert-requested-branches-to-array.outputs.branches_array }}
     steps:
       - name: Tell me the branch name
         run: |
