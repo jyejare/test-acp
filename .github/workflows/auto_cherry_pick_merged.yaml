@@ -58,6 +58,8 @@ jobs:
           script: |
             const branches = "${{ github.event.inputs.branches }}";
             const branchesArray = branches.includes(',') ? branches.split(',').map(item => item.trim()) : [branches.trim()];
+            const stringyitems = JSON.stringify(branchesArray);
+            console.log('Stringy Items', stringyitems);
             core.setOutput('branches_array', JSON.stringify(branchesArray));
 
       - name: Use Items Array
