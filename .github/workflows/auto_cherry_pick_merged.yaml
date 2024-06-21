@@ -37,7 +37,7 @@ jobs:
             core.setOutput('labels', pr.labels);
             core.setOutput('state', pr.state);
             core.setOutput('base_ref', pr.base.ref);
-            core.setOutput('assignee', pr.assignee.login);
+            core.setOutput('assignee', pr.assignee);
             core.setOutput('title', pr.title);
 
       - name: Print PR details
