@@ -60,6 +60,10 @@ jobs:
             const branchesArray = branches.includes(',') ? branches.split(',').map(item => item.trim()) : [branches.trim()];
             core.setOutput('branches_array', JSON.stringify(branchesArray));
 
+      - name: Use Items Array
+        run: |
+          echo "Items array: ${{ steps.convert.outputs.branches_array }}"
+
   run-the-branch-matrix:
     name: Auto Cherry Pick to labeled branches
     runs-on: ubuntu-latest
