@@ -70,13 +70,13 @@ jobs:
     name: Auto Cherry Pick to labeled branches
     runs-on: ubuntu-latest
     needs: convert-requested-branches-to-array
-    strategy:
-      matrix:
-        branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
+    # strategy:
+    #   matrix:
+    #     branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
     steps:
       - name: Tell me the branch name
         run: |
-          echo ${{ matrix.branch }}
+          echo ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
 
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
