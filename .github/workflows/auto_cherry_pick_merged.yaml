@@ -60,10 +60,6 @@ jobs:
             const branchesArray = branches.includes(',') ? branches.split(',').map(item => item.trim()) : [branches.trim()];
             core.setOutput('branches', JSON.stringify(branchesArray));
 
-      - name: Use Items Array
-        run: |
-          echo "Items array: ${{ steps.conversion.outputs.branches }}"
-
   run-the-branch-matrix:
     name: Auto Cherry Pick to labeled branches
     runs-on: ubuntu-latest
@@ -74,7 +70,7 @@ jobs:
     steps:
       - name: Tell me the branch name
         run: |
-          echo ${{ needs.arrayconversion.outputs.branches }}
+          echo "Branches ${{ needs.arrayconversion.outputs.branches }}"
 
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
