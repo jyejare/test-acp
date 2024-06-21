@@ -32,7 +32,7 @@ jobs:
             const pr = await github.rest.pulls.get({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: ${{ env.number }},
+                pull_number: ${{ env.number }},
             });
             core.setOutput('labels', pr.labels);
             core.setOutput('state', pr.state);
