@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        label: ${{ env.to_branches }}
+        label: ${{ github.event.inputs.branches }}
     steps:
       - name: Tell me the branch name
         run: |
