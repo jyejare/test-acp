@@ -63,7 +63,7 @@ jobs:
   run-the-branch-matrix:
     name: Auto Cherry Pick to labeled branches
     runs-on: ubuntu-latest
-    needs: arrayconversion
+    needs: get-parentPR-details
     # strategy:
     #   matrix:
     #     branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
@@ -72,7 +72,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            console.log("Branches are: ", ${{ needs.arrayconversion.outputs.branches }})
+            console.log("Branches are: ", ${{ needs.get-parentPR-details.outputs.title }})
 
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
