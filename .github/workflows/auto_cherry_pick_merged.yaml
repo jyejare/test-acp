@@ -66,13 +66,14 @@ jobs:
     needs: get-parentPR-details
     # strategy:
     #   matrix:
-    #     branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_array) }}
+    #     branch: ${{ fromJson(needs.convert-requested-branches-to-array.outputs.branches_a
     steps:
       - name: Tell me the branch name
         uses: actions/github-script@v7
         with:
-          script: |
-            console.log("Branches are: ", ${{ needs.get-parentPR-details.outputs.title }});
+          github-token: ${{ secrets.CHERRYPICK_PAT }}
+          run: |
+            echo ${{ matrix.label }}
 
 #  # Pre-Requisites for Auto Cherrypicking
 #  find-the-parent-prt-comment:
