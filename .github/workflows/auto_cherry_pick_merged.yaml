@@ -72,7 +72,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.CHERRYPICK_PAT }}
-          run: |
+          script: |
             echo ${{ matrix.label }}
 
 #  # Pre-Requisites for Auto Cherrypicking
