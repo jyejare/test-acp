@@ -25,7 +25,7 @@ jobs:
       base_ref: ${{ steps.parentPR.outputs.base_ref }}
       assignee: ${{ steps.parentPR.outputs.assignee }}
       title: ${{ steps.parentPR.outputs.title }}
-      prt_comment: ${{steps.fc.outputs.comment-body}}
+      prt_comment: ${{ steps.fc.outputs.comment-body }}
 
     steps:
       - name: Find parent PR details
