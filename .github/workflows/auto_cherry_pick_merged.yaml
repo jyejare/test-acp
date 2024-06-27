@@ -162,19 +162,3 @@ jobs:
             echo "pr_found=false" >> $GITHUB_OUTPUT
             echo "PR is not Found with title $PR_TITLE"
           fi
-
-      ## Failure Logging to issues
-      - name: Create Github issue on cherrypick failure
-        id: create-issue
-        if: ${{ always() && steps.search_pr.outputs.pr_found == 'false' && steps.cherrypick.outcome != 'success' && startsWith(matrix.branch, '6.') && matrix.branch != needs.get-parentPR-details.outputs.base_ref }}
-        uses: dacbd/create-issue-action@main
-        with:
-          token: ${{ secrets.CHERRYPICK_PAT }}
-          title: "[Failed-AutoCherryPick] - ${{ needs.get-parentPR-details.outputs.title }}"
-          body: |
-            #### Auto-Cherry-Pick WorkFlow Failure:
-            - To Branch: ${{ matrix.branch }}
-            - [Failed Cherrypick Action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            - [Parent Pull Request](https://github.com/${{ github.repository }}/pull/${{ env.number }})
-          labels: Failed_AutoCherryPick,${{ matrix.branch }}
-          assignees: ${{ needs.get-parentPR-details.outputs.assignee }}
